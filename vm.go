@@ -25,10 +25,6 @@ func run() {
 }
 
 func doOp(opNum int) {
-	if (debug) {
-		fmt.Println(opNum)
-	}
-
 	switch opNum {
 	case 0:
 		halt()
@@ -233,10 +229,18 @@ func readchar() {
 		text, _ := reader.ReadString('\n')
 
 		readbuffer = []byte(text)
+
+		//Windows terminals send a [13 10] for \r\n instead of just [10] for \n. We're looking for this and stripping
+		if (int(readbuffer[len(readbuffer) - 2]) == 13 && int(readbuffer[len(readbuffer) - 1]) == 10) {
+			var nl byte = readbuffer[len(readbuffer) - 1]
+			readbuffer = readbuffer[:len(readbuffer) - 2]
+			readbuffer = append(readbuffer, nl)
+		}
 	}
 
 	var code int
 	code, readbuffer = int(readbuffer[0]), readbuffer[1:]
+
 	putValue(regIndex, int(code))
 
 	//var b []byte = make([]byte, 2)
