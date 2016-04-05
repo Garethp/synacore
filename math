@@ -1,0 +1,8 @@
+red + corroded * shiny^2 + concave^3 - blue = 411
+blue + corroded * shiny^2 + concave^3 - red = 425
+
+red = 2
+corroded = 3
+shiny = 5
+concave = 7
+blue = 9
