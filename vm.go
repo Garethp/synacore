@@ -341,10 +341,6 @@ func readLine() []byte {
 	} else if (string(line) == "dump stack\n") {
 		fmt.Println(register.GetStack())
 		return readLine()
-	} else if (string(line) == "test calc\n") {
-//		fmt.Println("Answer", 3 + 5 * math.Pow(9, 2) + math.Pow(2, 3) - 7) 409
-		fmt.Println("Answer", 3 + 5 * math.Pow(7, 2) + math.Pow(2, 3) - 9)
-		return readLine()
 	} else if (string(line) == "autoplay\n") {
 		return autoPlay()
 	}
