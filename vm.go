@@ -373,13 +373,11 @@ func shouldKeepRunning() bool {
 	return !halted && !memory.IsEOM()
 }
 
-func stripWindowsCarriageReturn(readbuffer[] byte) []byte {
+func stripWindowsCarriageReturn(line[] byte) []byte {
 	//Windows terminals send a [13 10] for \r\n instead of just [10] for \n. We're looking for this and stripping
-	if (int(readbuffer[len(readbuffer) - 2]) == 13 && int(readbuffer[len(readbuffer) - 1]) == 10) {
-		var nl byte = readbuffer[len(readbuffer) - 1]
-		readbuffer = readbuffer[:len(readbuffer) - 2]
-		readbuffer = append(readbuffer, nl)
+	if (string(line[len(line) - 2:]) == "\r\n") {
+		line = append(line[:len(line) - 2], line[len(line) - 1:])
 	}
 
-	return readbuffer
+	return line
 }
