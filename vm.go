@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"./memory"
 	"./register"
+	"./log"
 	"os"
 	"bufio"
 	"math"
@@ -11,8 +12,8 @@ import (
 
 var modulo int = 32768
 var halted bool = false
-var debugEnabled bool = false
-var readbuffer[] byte
+var debug bool = false
+var readBuffer[] byte
 
 func main() {
 	run()
@@ -26,6 +27,10 @@ func run() {
 }
 
 func doOp(opNum int) {
+	if (debug) {
+		log.Log(fmt.Sprintf("Executing OpCode %v", opNum))
+	}
+
 	switch opNum {
 	case 0:
 		halt()
@@ -104,11 +109,9 @@ func equalTo() {
 	a = getValue(a)
 	b = getValue(b)
 
-	if (debugEnabled && b == 399) {
+	if (debug) {
 		var point int = memory.GetMemoryPointer()
-		fmt.Println(memory.Read(5235))
-		fmt.Println(register.GetRegisters())
-		fmt.Printf("Comparing %v (%v) and %v (%v) putting them in to registry %v\r\n", a, point - 2, b, point - 1, regIndex % modulo)
+		log.Log(fmt.Sprintf("Comparing %v (%v) and %v (%v) putting them in to registry %v\r\n", a, point - 2, b, point - 1, regIndex % modulo))
 	}
 
 	if (a == b) {
@@ -156,9 +159,9 @@ func add() {
 	var reg, a, b = memory.GetNextMemory(), getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
 	var result = (a + b) % modulo
 
-	if (reg % modulo == 0 && result == 411 && debugEnabled) {
+	if (reg % modulo == 0 && result == 411 && debug) {
 		var point int = memory.GetMemoryPointer()
-		fmt.Printf("Adding %v (%v) and %v (%v) = %v putting them in to registry %v\r\n", a, point - 2, b, point - 1, result, reg % modulo)
+		log.Log(fmt.Sprintf("Adding %v (%v) and %v (%v) = %v putting them in to registry %v\r\n", a, point - 2, b, point - 1, result, reg % modulo))
 	}
 
 	putValue(reg, result)
@@ -168,10 +171,9 @@ func multiply() {
 	var register, a, b int = memory.GetNextMemory(), getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
 	var result int = (a * b) % modulo
 
-	if (debugEnabled) {
-		fmt.Println("Multiplying", a, b)
-//		var point int = memory.GetMemoryPointer()
-//		fmt.Printf("Multiplyiny %v (%v) with %v (%v) to get %v and putting it in to Reg %v\r\n", a, point - 2, b, point - 1, result, register % modulo)
+	if (debug) {
+		var point int = memory.GetMemoryPointer()
+		log.Log(fmt.Sprintf("Multiplying %v (%v) with %v (%v) to get %v and putting it in to Reg %v\r\n", a, point - 2, b, point - 1, result, register % modulo))
 	}
 
 	putValue(register, result)
@@ -240,12 +242,12 @@ func printAsAscii() {
 func readchar() {
 	var regIndex = memory.GetNextMemory()
 
-	if (len(readbuffer) == 0) {
-		readbuffer = readLine()
+	if (len(readBuffer) == 0) {
+		readBuffer = readLine()
 	}
 
 	var code int
-	code, readbuffer = int(readbuffer[0]), readbuffer[1:]
+	code, readBuffer = int(readBuffer[0]), readBuffer[1:]
 
 	putValue(regIndex, int(code))
 }
@@ -294,11 +296,16 @@ func autoPlay() []byte {
 		"take shiny coin",
 		"down",
 		"east",
-		"use shiny coin",
-		"use corroded coin",
-		"use red coin",
-		"use concave coin",
 		"use blue coin",
+		"use red coin",
+		"use shiny coin",
+		"use concave coin",
+		"use corroded coin",
+		"north",
+		"take teleporter",
+		"use teleporter",
+		"take business card",
+		"take strange book",
 		""}
 
 	var autoplay[] byte
@@ -321,11 +328,11 @@ func readLine() []byte {
 	line = stripWindowsCr(line)
 
 	if (string(line) == "start debug\n") {
-		debugEnabled = true
+		debug = true
 		fmt.Println("Debug on")
 		return readLine()
 	} else if (string(line) == "stop debug\n") {
-		debugEnabled = false
+		debug = false
 		fmt.Println("Debug on")
 		return readLine()
 	} else if (string(line) == "dump registry\n") {
