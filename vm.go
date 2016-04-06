@@ -27,7 +27,7 @@ func run() {
 
 func doOp(opNum int) {
 	if (debug) {
-		log.Log(fmt.Sprintf("Executing OpCode %v", opNum))
+		//log.Log(fmt.Sprintf("Executing OpCode %v", opNum))
 	}
 
 	switch opNum {
@@ -134,6 +134,11 @@ func greaterThan() {
 
 func jumpTo() {
 	var jumpTo int = getLiteralValue(memory.GetNextMemory())
+
+	if (debug) {
+		log.Log(fmt.Sprintf("Jumping to %v (%v)", jumpTo, memory.GetMemoryPointer() - 1))
+	}
+
 	memory.SetMemoryPointer(jumpTo)
 }
 
@@ -376,7 +381,7 @@ func shouldKeepRunning() bool {
 func stripWindowsCarriageReturn(line[] byte) []byte {
 	//Windows terminals send a [13 10] for \r\n instead of just [10] for \n. We're looking for this and stripping
 	if (string(line[len(line) - 2:]) == "\r\n") {
-		line = append(line[:len(line) - 2], line[len(line) - 1:])
+		line = append(line[:len(line) - 2], line[len(line) - 1:]...)
 	}
 
 	return line
