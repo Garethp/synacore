@@ -7,7 +7,6 @@ import (
 	"./log"
 	"os"
 	"bufio"
-	"math"
 )
 
 var modulo int = 32768
@@ -20,8 +19,8 @@ func main() {
 }
 
 func run() {
-	if (continueRunning()) {
-		doOp(getValue(memory.GetNextMemory()))
+	if (shouldKeepRunning()) {
+		doOp(getLiteralValue(memory.GetNextMemory()))
 		run()
 	}
 }
@@ -35,21 +34,21 @@ func doOp(opNum int) {
 	case 0:
 		halt()
 	case 1:
-		set()
+		setRegistry()
 	case 2:
-		push()
+		pushToStack()
 	case 3:
-		pop()
+		popFromStack()
 	case 4:
 		equalTo()
 	case 5:
 		greaterThan()
 	case 6:
-		jump()
+		jumpTo()
 	case 7:
-		jt()
+		jumpToIfNotZero()
 	case 8:
-		jf()
+		jumpToIfZero()
 	case 9:
 		add()
 	case 10:
@@ -65,17 +64,17 @@ func doOp(opNum int) {
 	case 15:
 		readMemory()
 	case 16:
-		writeMemory()
+		writeToMemory()
 	case 17:
 		call()
 	case 18:
-		ret()
+		returnTo()
 	case 19:
-		printAsAscii()
+		printCharacter()
 	case 20:
-		readchar()
+		readCharacter()
 	case 21:
-		noop()
+		noOp()
 	default:
 		fmt.Println("Cannot handle OpCode ", opNum)
 		halt()
@@ -86,28 +85,28 @@ func halt() {
 	halted = true
 }
 
-func set() {
-	var registerIndex, value int = memory.GetNextMemory(), getValue(memory.GetNextMemory())
+func setRegistry() {
+	var registerIndex, value int = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory())
 
-	putValue(registerIndex, value)
+	putValueInRegistry(registerIndex, value)
 }
 
-func push() {
-	var a int = getValue(memory.GetNextMemory())
+func pushToStack() {
+	var a int = getLiteralValue(memory.GetNextMemory())
 
 	register.PushStack(a)
 }
 
-func pop() {
+func popFromStack() {
 	var regIndex, value int = memory.GetNextMemory(), register.PopStack()
 
-	putValue(regIndex, value)
+	putValueInRegistry(regIndex, value)
 }
 
 func equalTo() {
 	var regIndex, a, b = memory.GetNextMemory(), memory.GetNextMemory(), memory.GetNextMemory()
-	a = getValue(a)
-	b = getValue(b)
+	a = getLiteralValue(a)
+	b = getLiteralValue(b)
 
 	if (debug) {
 		var point int = memory.GetMemoryPointer()
@@ -115,48 +114,48 @@ func equalTo() {
 	}
 
 	if (a == b) {
-		putValue(regIndex, 1)
+		putValueInRegistry(regIndex, 1)
 	} else {
-		putValue(regIndex, 0)
+		putValueInRegistry(regIndex, 0)
 	}
 }
 
 func greaterThan() {
 	var regIndex, a, b = memory.GetNextMemory(), memory.GetNextMemory(), memory.GetNextMemory()
-	a = getValue(a)
-	b = getValue(b)
+	a = getLiteralValue(a)
+	b = getLiteralValue(b)
 
 	if (a > b) {
-		putValue(regIndex, 1)
+		putValueInRegistry(regIndex, 1)
 	} else {
-		putValue(regIndex, 0)
+		putValueInRegistry(regIndex, 0)
 	}
 }
 
-func jump() {
-	var jumpTo int = getValue(memory.GetNextMemory())
+func jumpTo() {
+	var jumpTo int = getLiteralValue(memory.GetNextMemory())
 	memory.SetMemoryPointer(jumpTo)
 }
 
-func jt() {
-	var a, b int = getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
+func jumpToIfNotZero() {
+	var a, b int = getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 
-	if (getValue(a) != 0) {
+	if (getLiteralValue(a) != 0) {
 		memory.SetMemoryPointer(b)
 	}
 }
 
-func jf() {
-	var a int = getValue(memory.GetNextMemory())
+func jumpToIfZero() {
+	var a int = getLiteralValue(memory.GetNextMemory())
 	var b int = memory.GetNextMemory()
 
-	if (getValue(a) == 0){
+	if (getLiteralValue(a) == 0){
 		memory.SetMemoryPointer(b)
 	}
 }
 
 func add() {
-	var reg, a, b = memory.GetNextMemory(), getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
+	var reg, a, b = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 	var result = (a + b) % modulo
 
 	if (reg % modulo == 0 && result == 411 && debug) {
@@ -164,11 +163,11 @@ func add() {
 		log.Log(fmt.Sprintf("Adding %v (%v) and %v (%v) = %v putting them in to registry %v\r\n", a, point - 2, b, point - 1, result, reg % modulo))
 	}
 
-	putValue(reg, result)
+	putValueInRegistry(reg, result)
 }
 
 func multiply() {
-	var register, a, b int = memory.GetNextMemory(), getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
+	var register, a, b int = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 	var result int = (a * b) % modulo
 
 	if (debug) {
@@ -176,70 +175,69 @@ func multiply() {
 		log.Log(fmt.Sprintf("Multiplying %v (%v) with %v (%v) to get %v and putting it in to Reg %v\r\n", a, point - 2, b, point - 1, result, register % modulo))
 	}
 
-	putValue(register, result)
+	putValueInRegistry(register, result)
 }
 
 func mod() {
-	var register, a, b int = memory.GetNextMemory(), getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
+	var register, a, b int = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 
-	putValue(register, a % b)
+	putValueInRegistry(register, a % b)
 }
 
 func bitwiseAnd() {
-	var register, a, b int = memory.GetNextMemory(), getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
+	var register, a, b int = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 
 	a16, b16 := uint16(a), uint16(b)
 
-	putValue(register, int(a16 & b16) % modulo)
+	putValueInRegistry(register, int(a16 & b16) % modulo)
 }
 
 func bitwiseOr() {
-	var register, a, b int = memory.GetNextMemory(), getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
+	var register, a, b int = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 
 	a16, b16 := uint16(a), uint16(b)
 
-	putValue(register, int(a16 | b16) % modulo)
+	putValueInRegistry(register, int(a16 | b16) % modulo)
 }
 
 func bitwiseNot() {
-	var register, a int = memory.GetNextMemory(), getValue(memory.GetNextMemory())
+	var register, a int = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory())
 
 	var a16 = uint16(a)
 
-	putValue(register, int(^a16) % modulo)
+	putValueInRegistry(register, int(^a16) % modulo)
 }
 
 func readMemory() {
-	var registry, memAddress int = memory.GetNextMemory(), getValue(memory.GetNextMemory())
+	var registry, memAddress int = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory())
 
-	putValue(registry, memory.Read(memAddress))
+	putValueInRegistry(registry, memory.Read(memAddress))
 }
 
-func writeMemory() {
-	var memAddress, value = getValue(memory.GetNextMemory()), getValue(memory.GetNextMemory())
+func writeToMemory() {
+	var memAddress, value = getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 
 	memory.Write(memAddress, value)
 }
 
-//If there are problems, look here
 func call() {
-	var jump, nextInstruction int = getValue(memory.GetNextMemory()), getValue(memory.GetMemoryPointer())
+	var jump, nextInstruction int = getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetMemoryPointer())
 
 	register.PushStack(nextInstruction)
-	memory.SetMemoryPointer(getValue(jump))
+	memory.SetMemoryPointer(getLiteralValue(jump))
 }
 
-func ret() {
-	var jump int = getValue(register.PopStack())
+func returnTo() {
+	var jump int = getLiteralValue(register.PopStack())
 
 	memory.SetMemoryPointer(jump)
 }
 
-func printAsAscii() {
-	fmt.Printf("%c", getValue(memory.GetNextMemory()))
+func printCharacter() {
+	fmt.Printf("%c", getLiteralValue(memory.GetNextMemory()))
 }
 
-func readchar() {
+func readCharacter() {
 	var regIndex = memory.GetNextMemory()
 
 	if (len(readBuffer) == 0) {
@@ -249,7 +247,11 @@ func readchar() {
 	var code int
 	code, readBuffer = int(readBuffer[0]), readBuffer[1:]
 
-	putValue(regIndex, int(code))
+	putValueInRegistry(regIndex, int(code))
+}
+
+func noOp() {
+
 }
 
 func autoPlay() []byte {
@@ -311,6 +313,10 @@ func autoPlay() []byte {
 	var autoplay[] byte
 
 	for index, command := range commands {
+		if (command == "") {
+			continue
+		}
+
 		index = index
 		command = command + "\n"
 
@@ -325,7 +331,7 @@ func readLine() []byte {
 	text, _ := reader.ReadString('\n')
 
 	var line = []byte(text)
-	line = stripWindowsCr(line)
+	line = stripWindowsCarriageReturn(line)
 
 	if (string(line) == "start debug\n") {
 		debug = true
@@ -348,11 +354,7 @@ func readLine() []byte {
 	return line
 }
 
-func noop() {
-
-}
-
-func getValue(value int) int {
+func getLiteralValue(value int) int {
 	if (value < modulo) {
 		return value
 	}
@@ -361,17 +363,17 @@ func getValue(value int) int {
 	return register.GetRegistry(regIndex)
 }
 
-func putValue(fullReg, value int) {
+func putValueInRegistry(fullReg, value int) {
 	var regIndex int = fullReg % modulo
 
 	register.PutRegistry(regIndex, value)
 }
 
-func continueRunning() bool {
+func shouldKeepRunning() bool {
 	return !halted && !memory.IsEOM()
 }
 
-func stripWindowsCr(readbuffer[] byte) []byte {
+func stripWindowsCarriageReturn(readbuffer[] byte) []byte {
 	//Windows terminals send a [13 10] for \r\n instead of just [10] for \n. We're looking for this and stripping
 	if (int(readbuffer[len(readbuffer) - 2]) == 13 && int(readbuffer[len(readbuffer) - 1]) == 10) {
 		var nl byte = readbuffer[len(readbuffer) - 1]
