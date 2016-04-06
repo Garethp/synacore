@@ -12,7 +12,7 @@ import (
 var modulo int = 32768
 var halted bool = false
 var debug bool = false
-var readBuffer[] byte
+var inBuffer[] byte
 
 func main() {
 	run()
@@ -240,12 +240,12 @@ func printCharacter() {
 func readCharacter() {
 	var regIndex = memory.GetNextMemory()
 
-	if (len(readBuffer) == 0) {
-		readBuffer = readLine()
+	if (len(inBuffer) == 0) {
+		inBuffer = readLine()
 	}
 
 	var code int
-	code, readBuffer = int(readBuffer[0]), readBuffer[1:]
+	code, inBuffer = int(inBuffer[0]), inBuffer[1:]
 
 	putValueInRegistry(regIndex, int(code))
 }
