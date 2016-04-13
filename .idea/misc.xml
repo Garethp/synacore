@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PHPCodeSnifferProjectConfiguration">
-    <option name="selectedConfigurationId" value="DEFAULT_INTERPRETER" />
-  </component>
-  <component name="PhpUnit">
-    <phpunit_settings>
-      <PhpUnitSettings load_method="CUSTOM_LOADER" custom_loader_path="$USER_HOME$/.composer/vendor/autoload.php" phpunit_phar_path="$USER_HOME$/.composer/vendor/bin/phpunit.phar" />
-    </phpunit_settings>
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <sourceRoots />
+    <libraryRoots />
+    <excludeRoots />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />

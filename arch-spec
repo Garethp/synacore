@@ -70,7 +70,7 @@ wmem: 16 a b
 call: 17 a
   write the address of the next instruction to the stack and jump to <a>
 ret: 18
-  remove the top element from the stack and jump to it; empty stack = halt
+  remove the top element from the stack and jumpTo to it; empty stack = halt
 out: 19 a
   write the character represented by ascii code <a> to the terminal
 in: 20 a
