@@ -30,11 +30,19 @@ void memory::loadFromFile(string fileName) {
     fclose(fp);
 }
 
-uint32_t memory::getCurrentMemory() {
+uint32_t memory::read() {
     uint32_t currentPointer = this->memoryPointer;
     this->memoryPointer++;
 
     return this->memory[currentPointer];
+}
+
+uint32_t memory::read(uint32_t pointer) {
+    return this->memory[pointer];
+}
+
+void memory::write(uint32_t pointer, uint32_t value) {
+    this->memory[pointer] = value;
 }
 
 uint32_t memory::getPointer() {

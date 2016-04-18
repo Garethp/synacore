@@ -11,7 +11,10 @@ class memory {
 public:
     void loadFromFile(std::string fileName);
 
-    uint32_t getCurrentMemory();
+    uint32_t read();
+    uint32_t read(uint32_t);
+
+    void write(uint32_t, uint32_t);
 
     uint32_t getPointer();
     void setPointer(uint32_t pointer);
