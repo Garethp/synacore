@@ -20,6 +20,13 @@ func main() {
 
 func run() {
 	if (shouldKeepRunning()) {
+		if (memory.GetMemoryPointer() == 5489) {
+			//fmt.Println(register.GetRegisters())
+			//halt()
+			register.PutRegistry(0, 6)
+			memory.SetMemoryPointer(5491)
+		}
+
 		doOp(getLiteralValue(memory.GetNextMemory()))
 		run()
 	}
@@ -27,7 +34,7 @@ func run() {
 
 func doOp(opNum int) {
 	if (debug) {
-		//log.Log(fmt.Sprintf("Executing OpCode %v", opNum))
+		log.LogOpCode(memory.GetMemoryPointer() - 1, opNum)
 	}
 
 	switch opNum {
@@ -145,6 +152,10 @@ func jumpTo() {
 func jumpToIfNotZero() {
 	var a, b int = getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 
+	if (debug) {
+		log.Log(fmt.Sprintf("Jumping to %v (%v)", jumpTo, memory.GetMemoryPointer() - 1))
+	}
+
 	if (getLiteralValue(a) != 0) {
 		memory.SetMemoryPointer(b)
 	}
@@ -153,6 +164,10 @@ func jumpToIfNotZero() {
 func jumpToIfZero() {
 	var a int = getLiteralValue(memory.GetNextMemory())
 	var b int = memory.GetNextMemory()
+
+	if (debug) {
+		log.Log(fmt.Sprintf("Jumping to %v (%v)", jumpTo, memory.GetMemoryPointer() - 1))
+	}
 
 	if (getLiteralValue(a) == 0){
 		memory.SetMemoryPointer(b)
@@ -163,7 +178,7 @@ func add() {
 	var reg, a, b = memory.GetNextMemory(), getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetNextMemory())
 	var result = (a + b) % modulo
 
-	if (reg % modulo == 0 && result == 411 && debug) {
+	if (debug) {
 		var point int = memory.GetMemoryPointer()
 		log.Log(fmt.Sprintf("Adding %v (%v) and %v (%v) = %v putting them in to registry %v\r\n", a, point - 2, b, point - 1, result, reg % modulo))
 	}
@@ -228,12 +243,20 @@ func writeToMemory() {
 func call() {
 	var jump, nextInstruction int = getLiteralValue(memory.GetNextMemory()), getLiteralValue(memory.GetMemoryPointer())
 
+	if (debug) {
+		log.Log(fmt.Sprintf("Calling %v (%v)", jump, memory.GetMemoryPointer() - 1))
+	}
+
 	register.PushStack(nextInstruction)
 	memory.SetMemoryPointer(getLiteralValue(jump))
 }
 
 func returnTo() {
 	var jump int = getLiteralValue(register.PopStack())
+
+	if (debug) {
+		log.Log(fmt.Sprintf("Returning to %v (%v)", jump, memory.GetMemoryPointer() - 1))
+	}
 
 	memory.SetMemoryPointer(jump)
 }
@@ -344,7 +367,7 @@ func readLine() []byte {
 		return readLine()
 	} else if (string(line) == "stop debug\n") {
 		debug = false
-		fmt.Println("Debug on")
+		fmt.Println("Debug off")
 		return readLine()
 	} else if (string(line) == "dump registry\n") {
 		fmt.Println(register.GetRegisters())
@@ -354,6 +377,12 @@ func readLine() []byte {
 		return readLine()
 	} else if (string(line) == "autoplay\n") {
 		return autoPlay()
+	} else if (string(line) == "dump reg\n") {
+		fmt.Println(register.GetRegisters())
+		return readLine()
+	} else if (string(line) == "set mem 8 1\n") {
+		register.PutRegistry(7, 1)
+		return readLine()
 	}
 
 	return line
